@@ -1,8 +1,10 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,19 +19,36 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from "@/lib/supabase"
 import { User, LogIn, LogOut } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface AuthDialogProps {
   user: any
   onAuthChange: (user: any) => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export default function AuthDialog({ user, onAuthChange }: AuthDialogProps) {
-  const [open, setOpen] = useState(false)
+export default function AuthDialog({ user, onAuthChange, open, onOpenChange }: AuthDialogProps) {
+  const [dialogOpen, setDialogOpen] = useState(open || false)
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const { toast } = useToast()
+  const router = useRouter()
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (open !== undefined) {
+      setDialogOpen(open)
+    }
+  }, [open])
+
+  // Update parent state when local state changes
+  const handleOpenChange = (newOpen: boolean) => {
+    setDialogOpen(newOpen)
+    if (onOpenChange) {
+      onOpenChange(newOpen)
+    }
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,16 +62,16 @@ export default function AuthDialog({ user, onAuthChange }: AuthDialogProps) {
 
       if (error) throw error
 
-      toast({
-        title: "Success!",
-        description: "Check your email for the confirmation link.",
-      })
-      setOpen(false)
+      toast.success("Account created successfully! Check your email for the confirmation link.")
+      setDialogOpen(false)
+      if (onOpenChange) {
+        onOpenChange(false)
+      }
+      // Navigate to API tester after successful signup
+      router.push("/api-tester")
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Sign up failed", {
         description: error.message,
-        variant: "destructive",
       })
     } finally {
       setLoading(false)
@@ -72,16 +91,16 @@ export default function AuthDialog({ user, onAuthChange }: AuthDialogProps) {
       if (error) throw error
 
       onAuthChange(data.user)
-      toast({
-        title: "Welcome back!",
-        description: "You've been signed in successfully.",
-      })
-      setOpen(false)
+      toast.success("Welcome back! You've been signed in successfully.")
+      setDialogOpen(false)
+      if (onOpenChange) {
+        onOpenChange(false)
+      }
+      // Navigate to API tester after successful signin
+      router.push("/api-tester")
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Sign in failed", {
         description: error.message,
-        variant: "destructive",
       })
     } finally {
       setLoading(false)
@@ -94,15 +113,15 @@ export default function AuthDialog({ user, onAuthChange }: AuthDialogProps) {
       if (error) throw error
 
       onAuthChange(null)
-      toast({
-        title: "Signed out",
-        description: "You've been signed out successfully.",
-      })
+      if (onOpenChange) {
+        onOpenChange(false)
+      }
+      toast.success("Signed out successfully")
+      // Navigate back to home page after sign out
+      router.push("/")
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Sign out failed", {
         description: error.message,
-        variant: "destructive",
       })
     }
   }
@@ -122,7 +141,7 @@ export default function AuthDialog({ user, onAuthChange }: AuthDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
           <LogIn className="h-4 w-4 mr-2" />
