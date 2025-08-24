@@ -41,13 +41,4 @@ Visit `http://localhost:3000` in your browser to use the tool locally.
 This project is deployed using [Vercel](https://vercel.com). You can view the live version here:
 **[https://apibuddy.vercel.app](https://apibuddy.vercel.app)**
 
-## Roadmap
 
-* Add request history panel with localStorage or database support
-* Implement multiple request tab support
-* Add Bearer token and API key auth input fields
-* Optional user authentication using Supabase
-
-
-
-Let me know if you'd like a short "How it works" diagram or want a blog post or case study based on this.
